@@ -2,13 +2,11 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const pLimit = require('p-limit');
 const pSettle = require('p-settle');
-const {IMDB_NAME_URL, IMDB_URL, P_LIMIT} = require('./constants');
+const {DATABASE_NAME, IMDB_NAME_URL, IMDB_URL, P_LIMIT, MONGO_URI} = require('./constants');
+const { MongoClient } = require("mongodb");
 
-/**
- * Get filmography for a given actor
- * @param  {String}  actor - imdb id
- * @return {Array}
- */
+
+ 
 const getFilmography = async actor => {
   try {
     const response = await axios(`${IMDB_NAME_URL}/${actor}`);
@@ -24,16 +22,12 @@ const getFilmography = async actor => {
       })
       .get();
   } catch (error) {
-    console.error(error);
+   // console.error(error);
     return [];
   }
 };
 
-/**
- * Get movie from an imdb link
- * @param  {String} link
- * @return {Object}
- */
+
 const getMovie = async link => {
   try {
     const response = await axios(link);
@@ -60,16 +54,35 @@ const getMovie = async link => {
       'year': Number($('#titleYear a').text())
     };
   } catch (error) {
-    console.error(error);
+   // console.error(error);
     return {};
   }
 };
 
-/**
- * Get all filmography for a given actor
- * @param  {String} actor
- * @return {Array}
- */
+const writeToDatabase = async movies => {
+  const client = new MongoClient(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
+  return new Promise((resolve, reject) => {
+    client.connect(err => {
+      if (err) reject(err);
+      const collection = client.db(DATABASE_NAME).collection("movies");
+      collection.deleteMany({}, (err, res) => {
+        if (err) reject(err);
+        console.log(`Deleted ${res.deletedCount} objects`);
+        collection.insertMany(movies, (err, res) => {
+          if (err) reject(err);
+          console.log(`Number of documents inserted: ${res.insertedCount}`);
+          client.close();
+          resolve();
+        });
+      });
+    });
+  });
+};
+
+
 module.exports = async actor => {
   const limit = pLimit(P_LIMIT);
   const filmography = await getFilmography(actor);
@@ -85,5 +98,7 @@ module.exports = async actor => {
     .filter(result => result.isFulfilled)
     .map(result => result.value);
 
-  return [].concat.apply([], isFulfilled);
-};
+    const movies = [].concat.apply([], isFulfilled);
+    if (movies.length > 0) await writeToDatabase(movies);
+    return movies;
+  };

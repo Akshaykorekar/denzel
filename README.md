@@ -1,5 +1,24 @@
 # DENZEL
 
+ ## Using Heroku 2X :
+
+> React (Client-side): 
+
+ https://denzel-emilie-y9.herokuapp.com/
+
+![gif denzel react app](https://media.giphy.com/media/VIz3W004bxwQXe0gCM/giphy.gif)
+
+> Api Deployed : 
+ 
+ https://denzel-movies-api-ey.herokuapp.com/movies
+
+![Screenshot Deployed Api](img/deployed_api.PNG) 
+
+> Example of a GraphQL query :
+
+![Example of graphql_deployed_heroku](img/graphql_deployed_heroku.PNG)
+
+
 > The must-watch Denzel's movies
 
 ![denzel](https://m.media-amazon.com/images/M/MV5BMjE5NDU2Mzc3MV5BMl5BanBnXkFtZTcwNjAwNTE5OQ@@._V1_SY1000_SX750_AL_.jpg)
